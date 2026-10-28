@@ -1,0 +1,6 @@
+YazilimSec yonetici girisi
+Kullanici adi: yz_2bb27e4df15dadd3
+Sifre: 3[f)e)SA?9ZfVtbZm7Yv7JN2&Qb$
+Giris: http://127.0.0.1:3000/kurumsal-giris-7e81773b
+
+Bu dosyayı şifreyi ezberledikten sonra silin.
