@@ -25,15 +25,15 @@ import secrets
 import sqlite3
 import sys
 import threading
-import time; from pathlib import Path; BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_SITE_FILE = BASE_DIR / "yaz_l_mse_tam_platform_aray_z.html"
+import time
+from datetime import datetime, timedelta, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_SITE_FILE = BASE_DIR.parent / "yaz_l_mse_tam_platform_aray_z.html"
+DEFAULT_SITE_FILE = BASE_DIR / "yaz_l_mse_tam_platform_aray_z.html"
 DEFAULT_DB_FILE = BASE_DIR / "data" / "yazilimsec.db"
 MAX_BODY_BYTES = 30 * 1024 * 1024  # 30 MB (base64 logolar için rahat sınır)
 MAX_FORM_BYTES = 16 * 1024
