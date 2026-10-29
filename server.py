@@ -25,7 +25,7 @@ import secrets
 import sqlite3
 import sys
 import threading
-import time
+import time; from pathlib import Path; BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SITE_FILE = BASE_DIR / "yaz_l_mse_tam_platform_aray_z.html"
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
