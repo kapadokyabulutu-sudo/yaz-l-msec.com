@@ -26,7 +26,7 @@ import sqlite3
 import sys
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+DEFAULT_SITE_FILE = BASE_DIR / "yaz_l_mse_tam_platform_aray_z.html"
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
