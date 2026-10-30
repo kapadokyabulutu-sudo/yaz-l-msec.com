@@ -56,20 +56,25 @@
         .rounded-btn { border-radius: 9999px; }
         .rounded-input { border-radius: 9999px; }
         .logo-svg { max-height: 38px; max-width: 100%; height: auto; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media (max-width: 359px) {
+            .header-cat-label { display: none; }
+        }
     </style>
 </head>
 <body class="bg-brand-grayBg text-slate-800 antialiased min-h-screen flex flex-col">
 
     <!-- TOP HEADER -->
     <header class="bg-brand-dark text-white sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3">
             <!-- Logo -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchPage('home')">
-                <div id="site-logo-fallback" class="w-10 h-10 bg-brand-lightBlue rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow-md">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer" onclick="switchPage('home')">
+                <div id="site-logo-fallback" class="w-9 h-9 sm:w-10 sm:h-10 bg-brand-lightBlue rounded-2xl flex items-center justify-center text-white font-extrabold text-lg sm:text-xl shadow-md shrink-0">
                     Y
                 </div>
-                <img id="site-logo-img" alt="Site Logosu" class="hidden w-10 h-10 rounded-2xl object-contain bg-white p-1 shadow-md">
-                <span class="text-2xl font-extrabold tracking-tight">Yazılım<span class="text-brand-lightBlue">Seç</span></span>
+                <img id="site-logo-img" alt="Site Logosu" class="hidden w-9 h-9 sm:w-10 sm:h-10 rounded-2xl object-contain bg-white p-1 shadow-md shrink-0">
+                <span class="text-xl sm:text-2xl font-extrabold tracking-tight whitespace-nowrap">Yazılım<span class="text-brand-lightBlue">Seç</span></span>
             </div>
 
             <!-- Navigation Links -->
@@ -80,21 +85,22 @@
             </nav>
 
             <!-- Action Buttons -->
-            <div class="flex items-center space-x-4">
-                <button onclick="switchPage('categories')" class="bg-brand-lightBlue hover:bg-blue-600 text-white px-5 py-2.5 rounded-pill font-semibold text-sm transition shadow-sm">
-                    <i class="fa-solid fa-th-large mr-1.5"></i> Kategoriler
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                <button onclick="switchPage('categories')" aria-label="Kategoriler" title="Kategoriler" class="bg-brand-lightBlue hover:bg-blue-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-pill font-semibold text-xs sm:text-sm transition shadow-sm">
+                    <i class="fa-solid fa-th-large mr-0 sm:mr-1.5"></i><span class="header-cat-label">Kategoriler</span>
                 </button>
             </div>
         </div>
     </header>
 
-    
+
+
 
     <!-- MAIN CONTAINER -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-6 py-8">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         <!-- Notification Toast -->
-        <div id="toast-notify" class="hidden fixed top-24 right-6 bg-emerald-600 text-white px-6 py-3 rounded-pill shadow-xl z-50 text-sm font-semibold flex items-center gap-2 transition duration-300">
+        <div id="toast-notify" class="hidden fixed top-20 sm:top-24 left-4 right-4 sm:left-auto sm:right-6 bg-emerald-600 text-white px-5 sm:px-6 py-3 rounded-2xl sm:rounded-pill shadow-xl z-50 text-sm font-semibold flex items-center justify-center gap-2 transition duration-300">
             <i class="fa-solid fa-circle-check text-lg"></i>
             <span id="toast-message">İşlem başarıyla gerçekleştirildi!</span>
         </div>
@@ -102,7 +108,7 @@
         <!-- ================= PAGE 1: ANA SAYFA ================= -->
         <section id="page-home" class="space-y-12">
             <!-- Hero Search Area -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-gradient-to-b from-brand-softBlue to-transparent p-8 md:p-10 rounded-card border border-blue-100">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center bg-gradient-to-b from-brand-softBlue to-transparent p-5 sm:p-8 md:p-10 rounded-card border border-blue-100">
                 <div class="lg:col-span-7 space-y-5">
                     <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                         İşletmeniz İçin En Doğru Yerli Yazılımı Bulun
@@ -113,11 +119,11 @@
 
                     <!-- Search Input Bar (Capterra tarzı canlı öneri) -->
                     <div class="relative max-w-xl">
-                        <div class="flex items-center bg-white shadow-lg rounded-pill p-2 border border-slate-200">
-                            <i class="fa-solid fa-magnifying-glass text-slate-400 pl-4 text-lg"></i>
-                            <input type="text" id="home-search-input" autocomplete="off" oninput="onHomeSearchInput(this.value)" onkeydown="onHomeSearchKey(event)" onfocus="onHomeSearchInput(this.value)" placeholder="Yazılım, kategori veya ihtiyaç yazın (Örn: ERP, muhasebe, İK, POS)" class="w-full px-4 py-3 focus:outline-none text-slate-700 rounded-pill text-sm md:text-base">
-                            <button onclick="submitHomeSearch()" class="bg-brand-lightBlue hover:bg-blue-600 text-white font-semibold px-8 py-3 rounded-pill transition shadow-sm text-sm md:text-base shrink-0">
-                                Arama Yap
+                        <div class="flex items-center bg-white shadow-lg rounded-pill p-1.5 sm:p-2 border border-slate-200">
+                            <i class="fa-solid fa-magnifying-glass text-slate-400 pl-3 sm:pl-4 text-base sm:text-lg shrink-0"></i>
+                            <input type="text" id="home-search-input" autocomplete="off" oninput="onHomeSearchInput(this.value)" onkeydown="onHomeSearchKey(event)" onfocus="onHomeSearchInput(this.value)" placeholder="Yazılım, kategori veya ihtiyaç yazın (Örn: ERP, muhasebe, İK, POS)" class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 sm:py-3 focus:outline-none text-slate-700 rounded-pill text-sm md:text-base">
+                            <button onclick="submitHomeSearch()" aria-label="Arama Yap" class="bg-brand-lightBlue hover:bg-blue-600 text-white font-semibold px-3 sm:px-8 py-2.5 sm:py-3 rounded-pill transition shadow-sm text-xs sm:text-sm md:text-base shrink-0">
+                                <span class="hidden sm:inline">Arama Yap</span><span class="sm:hidden">Ara</span>
                             </button>
                         </div>
 
@@ -152,7 +158,7 @@
 
             <!-- Popüler Kategoriler -->
             <div class="space-y-6">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Popüler Kategoriler</h2>
                         <p class="text-slate-500 text-sm mt-0.5">Editör seçimiyle öne çıkarılan iş alanları</p>
@@ -173,12 +179,12 @@
                                     <i class="fa-solid fa-file-invoice-dollar"></i>
                                 </div>
                             </div>
-                            <div class="px-6 pt-5">
+                            <div class="px-4 sm:px-6 pt-4 sm:pt-5">
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition">Ön Muhasebe & Finans</h3>
                                 <p class="text-slate-600 text-sm mt-2">Paraşüt, BizimHesap, KolayBi', Logo İşbaşı ve MikroX çözümleri.</p>
                             </div>
                         </div>
-                        <div class="px-6 pb-6 pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                        <div class="px-4 sm:px-6 pb-5 sm:pb-6 pt-4 sm:pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
                             <span>6 Yazılım</span>
                             <span class="text-brand-lightBlue font-bold group-hover:translate-x-1 transition flex items-center gap-1">İncele <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
                         </div>
@@ -193,12 +199,12 @@
                                     <i class="fa-solid fa-users"></i>
                                 </div>
                             </div>
-                            <div class="px-6 pt-5">
+                            <div class="px-4 sm:px-6 pt-4 sm:pt-5">
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition">İnsan Kaynakları & Bordro</h3>
                                 <p class="text-slate-600 text-sm mt-2">Kolay İK, Idemax, İkolog, Bordro24 ve MasrafAl İK sistemleri.</p>
                             </div>
                         </div>
-                        <div class="px-6 pb-6 pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                        <div class="px-4 sm:px-6 pb-5 sm:pb-6 pt-4 sm:pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
                             <span>5 Yazılım</span>
                             <span class="text-emerald-600 font-bold group-hover:translate-x-1 transition flex items-center gap-1">İncele <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
                         </div>
@@ -213,12 +219,12 @@
                                     <i class="fa-solid fa-boxes-packing"></i>
                                 </div>
                             </div>
-                            <div class="px-6 pt-5">
+                            <div class="px-4 sm:px-6 pt-4 sm:pt-5">
                                 <h3 class="text-xl font-bold text-slate-900 group-hover:text-purple-600 transition">E-Ticaret & Kargo Yönetimi</h3>
                                 <p class="text-slate-600 text-sm mt-2">StockMount, Sentos, Sopsy, Yolda.com ve ProEntegrasyon platformları.</p>
                             </div>
                         </div>
-                        <div class="px-6 pb-6 pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                        <div class="px-4 sm:px-6 pb-5 sm:pb-6 pt-4 sm:pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
                             <span>5 Yazılım</span>
                             <span class="text-purple-600 font-bold group-hover:translate-x-1 transition flex items-center gap-1">İncele <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
                         </div>
@@ -228,7 +234,7 @@
 
             <!-- Popüler Yazılımlar (4 Adet) -->
             <div class="space-y-6">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900">Popüler Yazılımlar</h2>
                         <p class="text-slate-500 text-sm mt-0.5">Editör seçimiyle öne çıkarılan 4 iş yazılımı</p>
@@ -278,9 +284,9 @@
         <section id="page-categories" class="hidden space-y-8">
             <div class="max-w-2xl mx-auto">
                 <div class="flex items-center bg-white shadow-sm rounded-pill p-1.5 border border-slate-300">
-                    <i class="fa-solid fa-magnifying-glass text-slate-400 pl-4"></i>
-                    <input type="text" id="category-search-input" autocomplete="off" oninput="filterCategoryList(this.value)" placeholder="Kategoriler arasında arayın (Örn: İK, Stok, POS, E-Ticaret)..." class="w-full px-4 py-2.5 focus:outline-none text-slate-700 text-sm rounded-pill">
-                    <button onclick="filterCategoryList(document.getElementById('category-search-input').value)" class="bg-brand-lightBlue text-white text-sm px-6 py-2.5 rounded-pill font-semibold hover:bg-blue-600 transition">Bul</button>
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 pl-3 sm:pl-4 shrink-0"></i>
+                    <input type="text" id="category-search-input" autocomplete="off" oninput="filterCategoryList(this.value)" placeholder="Kategoriler arasında arayın (Örn: İK, Stok, POS, E-Ticaret)..." class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 focus:outline-none text-slate-700 text-sm rounded-pill">
+                    <button onclick="filterCategoryList(document.getElementById('category-search-input').value)" class="bg-brand-lightBlue text-white text-xs sm:text-sm px-3 sm:px-6 py-2.5 rounded-pill font-semibold hover:bg-blue-600 transition shrink-0">Bul</button>
                 </div>
             </div>
 
@@ -292,9 +298,9 @@
 
                     <!-- Clean minimalist list layout without heavy cards or numbered badges -->
                     <div id="category-list-rows" class="divide-y divide-slate-200 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div data-cat="e-Fatura & Ön Muhasebe" onclick="goToCategory('e-Fatura & Ön Muhasebe')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-brand-lightBlue flex items-center justify-center text-lg shrink-0">
+                        <div data-cat="e-Fatura & Ön Muhasebe" onclick="goToCategory('e-Fatura & Ön Muhasebe')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-brand-lightBlue flex items-center justify-center text-lg shrink-0">
                                     <i class="fa-solid fa-file-invoice-dollar"></i>
                                 </div>
                                 <div>
@@ -302,12 +308,12 @@
                                     <p class="text-xs text-slate-500 mt-0.5">Paraşüt, BizimHesap, KolayBi', Logo İşbaşı, MikroX, BirFatura</p>
                                 </div>
                             </div>
-                            <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">6 Yazılım</span>
+                            <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">6 Yazılım</span>
                         </div>
 
-                        <div data-cat="İnsan Kaynakları & Bordro" onclick="goToCategory('İnsan Kaynakları & Bordro')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                        <div data-cat="İnsan Kaynakları & Bordro" onclick="goToCategory('İnsan Kaynakları & Bordro')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
                                     <i class="fa-solid fa-users"></i>
                                 </div>
                                 <div>
@@ -315,12 +321,12 @@
                                     <p class="text-xs text-slate-500 mt-0.5">Kolay İK, Idemax, İkolog, Bordro24, MasrafAl</p>
                                 </div>
                             </div>
-                            <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">5 Yazılım</span>
+                            <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">5 Yazılım</span>
                         </div>
 
-                        <div data-cat="e-Ticaret & Kargo" onclick="goToCategory('e-Ticaret & Kargo')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                        <div data-cat="e-Ticaret & Kargo" onclick="goToCategory('e-Ticaret & Kargo')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
                                     <i class="fa-solid fa-boxes-packing"></i>
                                 </div>
                                 <div>
@@ -328,12 +334,12 @@
                                     <p class="text-xs text-slate-500 mt-0.5">StockMount, Sentos, Sopsy, Yolda.com, ProEntegrasyon</p>
                                 </div>
                             </div>
-                            <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">5 Yazılım</span>
+                            <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">5 Yazılım</span>
                         </div>
 
-                        <div data-cat="CRM & Müşteri İlişkileri" onclick="goToCategory('CRM & Müşteri İlişkileri')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                        <div data-cat="CRM & Müşteri İlişkileri" onclick="goToCategory('CRM & Müşteri İlişkileri')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
                                     <i class="fa-solid fa-chart-line"></i>
                                 </div>
                                 <div>
@@ -341,12 +347,12 @@
                                     <p class="text-xs text-slate-500 mt-0.5">Teamgram, Infoset, Omnitron, Enocta, Octopus</p>
                                 </div>
                             </div>
-                            <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">5 Yazılım</span>
+                            <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">5 Yazılım</span>
                         </div>
 
-                        <div data-cat="e-Dönüşüm & Mevzuat" onclick="goToCategory('e-Dönüşüm & Mevzuat')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                        <div data-cat="e-Dönüşüm & Mevzuat" onclick="goToCategory('e-Dönüşüm & Mevzuat')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
                                     <i class="fa-solid fa-scale-balanced"></i>
                                 </div>
                                 <div>
@@ -354,12 +360,12 @@
                                     <p class="text-xs text-slate-500 mt-0.5">İYS Cep, KVKK Uyum Asistanı, E-Defterim, UETS Takip</p>
                                 </div>
                             </div>
-                            <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">4 Yazılım</span>
+                            <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">4 Yazılım</span>
                         </div>
 
-                        <div data-cat="Restoran & POS" onclick="goToCategory('Restoran & POS')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
+                        <div data-cat="Restoran & POS" onclick="goToCategory('Restoran & POS')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
                                     <i class="fa-solid fa-utensils"></i>
                                 </div>
                                 <div>
@@ -367,7 +373,7 @@
                                     <p class="text-xs text-slate-500 mt-0.5">Adisyo, SambaPOS, ViraPos, Field2Base, PaketTaksi Panel</p>
                                 </div>
                             </div>
-                            <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">5 Yazılım</span>
+                            <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">5 Yazılım</span>
                         </div>
 
                         <!-- Kategori aramasında sonuç yoksa -->
@@ -405,9 +411,9 @@
         <!-- ================= PAGE 3: YAZILIM KARTLARI ================= -->
         <section id="page-listing" class="hidden space-y-6">
             <div class="flex items-center bg-white shadow-sm rounded-pill p-1.5 border border-slate-300">
-                <i class="fa-solid fa-magnifying-glass text-slate-400 pl-4"></i>
-                <input type="text" id="listing-search" autocomplete="off" oninput="onListingSearch(this.value)" placeholder="Yazılım ara (Örn: Paraşüt, Kolay İK, Adisyo, StockMount)..." class="w-full px-4 py-2 focus:outline-none text-slate-800 font-medium text-sm rounded-pill">
-                <button onclick="onListingSearch(document.getElementById('listing-search').value)" class="bg-brand-lightBlue text-white text-sm px-6 py-2 rounded-pill font-semibold">Arama Yap</button>
+                <i class="fa-solid fa-magnifying-glass text-slate-400 pl-3 sm:pl-4 shrink-0"></i>
+                <input type="text" id="listing-search" autocomplete="off" oninput="onListingSearch(this.value)" placeholder="Yazılım ara (Örn: Paraşüt, Kolay İK, Adisyo, StockMount)..." class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 focus:outline-none text-slate-800 font-medium text-sm rounded-pill">
+                <button onclick="onListingSearch(document.getElementById('listing-search').value)" class="bg-brand-lightBlue text-white text-xs sm:text-sm px-3 sm:px-6 py-2.5 sm:py-2 rounded-pill font-semibold shrink-0"><span class="hidden sm:inline">Arama Yap</span><span class="sm:hidden">Ara</span></button>
             </div>
 
             <!-- Aktif filtreler + sonuç sayısı -->
@@ -416,6 +422,11 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- Left Sidebar Filters -->
                 <div class="lg:col-span-3 space-y-4">
+                    <button id="mobile-filter-toggle" type="button" onclick="toggleMobileFilters()" aria-controls="mobile-filter-panel" aria-expanded="false" class="lg:hidden w-full flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 shadow-sm">
+                        <span><i class="fa-solid fa-sliders text-brand-lightBlue mr-1.5"></i><span id="mobile-filter-toggle-label">Filtreleri Göster</span></span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+                    </button>
+                    <div id="mobile-filter-panel" class="hidden lg:block">
                     <div class="bg-white p-5 rounded-card border border-slate-200 space-y-4 shadow-sm">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 class="font-bold text-slate-900 text-sm">Gelişmiş Filtreleme</h3>
@@ -489,6 +500,7 @@
                             </div>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- Right Large Cards Container -->
@@ -550,7 +562,7 @@
 
             <!-- 4 Onaylı Kullanıcı Yorumları -->
             <div class="bg-white p-6 rounded-card border border-slate-200 space-y-6 shadow-sm">
-                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
                     <h3 class="text-lg font-bold text-slate-900">Doğrulanmış Kullanıcı Değerlendirmeleri</h3>
                     <span id="detail-review-count" class="text-xs text-slate-500 font-semibold">Toplam 4 Onaylı Yorum</span>
                 </div>
@@ -1239,7 +1251,7 @@
 
     <!-- FOOTER -->
     <footer class="bg-brand-dark text-slate-400 py-8 text-xs border-t border-slate-800 mt-auto">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p>© 2026 YazılımSeç - Türkiye'nin İş Yazılımları Rehberi. Tüm hakları saklıdır.</p>
         </div>
     </footer>
@@ -1865,12 +1877,12 @@
                                 <i class="fa-solid ${escapeHtml(cat.icon || 'fa-layer-group')}"></i>
                             </div>
                         </div>
-                        <div class="px-6 pt-5">
+                        <div class="px-4 sm:px-6 pt-4 sm:pt-5">
                             <h3 class="text-xl font-bold text-slate-900 ${color.title} transition">${escapeHtml(cat.short || cat.name)}</h3>
                             <p class="text-slate-600 text-sm mt-2">${sample ? escapeHtml(sample) + ' çözümleri.' : 'Bu kategoride henüz yazılım bulunmuyor.'}</p>
                         </div>
                     </div>
-                    <div class="px-6 pb-6 pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                    <div class="px-4 sm:px-6 pb-5 sm:pb-6 pt-4 sm:pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
                         <span>${items.length} Yazılım</span>
                         <span class="${color.link} font-bold group-hover:translate-x-1 transition flex items-center gap-1">İncele <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
                     </div>
@@ -1889,9 +1901,9 @@
                 const color = getCategoryColor(cat.color);
                 const items = softwareList.filter(s => s.category === cat.name);
                 return `
-                <div data-cat="${escapeHtml(cat.name)}" onclick="goToCategory('${jsAttr(cat.name)}')" class="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-10 h-10 rounded-xl ${color.icon} flex items-center justify-center text-lg shrink-0">
+                <div data-cat="${escapeHtml(cat.name)}" onclick="goToCategory('${jsAttr(cat.name)}')" class="p-3 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition">
+                    <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${color.icon} flex items-center justify-center text-lg shrink-0">
                             <i class="fa-solid ${escapeHtml(cat.icon || 'fa-layer-group')}"></i>
                         </div>
                         <div>
@@ -1899,7 +1911,7 @@
                             <p class="text-xs text-slate-500 mt-0.5">${items.length ? items.slice(0, 6).map(s => escapeHtml(s.name)).join(', ') : 'Bu kategoride henüz yazılım yok'}</p>
                         </div>
                     </div>
-                    <span class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-full shrink-0">${items.length} Yazılım</span>
+                    <span class="text-[10px] sm:text-xs bg-slate-100 text-slate-700 font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shrink-0 whitespace-nowrap">${items.length} Yazılım</span>
                 </div>`;
             }).join('') + `
                 <div id="category-empty-msg" class="hidden p-8 text-center text-slate-500 text-sm font-semibold">
@@ -2021,7 +2033,7 @@
                     const count = softwareList.filter(s => s.category === cat).length;
                     return `
                     <button type="button" onclick="goToCategory('${cat}')" class="w-full text-left px-4 py-3 hover:bg-slate-50 transition flex items-center gap-3 border-b border-slate-100">
-                        <span class="w-10 h-10 rounded-xl bg-blue-50 text-brand-lightBlue flex items-center justify-center shrink-0"><i class="fa-solid fa-layer-group text-sm"></i></span>
+                        <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-brand-lightBlue flex items-center justify-center shrink-0"><i class="fa-solid fa-layer-group text-sm"></i></span>
                         <span class="min-w-0 flex-1">
                             <span class="block text-sm font-bold text-slate-900 truncate">${cat}</span>
                             <span class="block text-[11px] text-slate-500">${count} yazılım içeriyor</span>
@@ -2102,6 +2114,17 @@
             if (ls) ls.value = '';
             resetListing();
             switchPage('listing');
+        }
+
+        // Mobilde filtre panelini aç/kapat
+        function toggleMobileFilters() {
+            const panel = document.getElementById('mobile-filter-panel');
+            const btn = document.getElementById('mobile-filter-toggle');
+            const label = document.getElementById('mobile-filter-toggle-label');
+            if (!panel) return;
+            const willHide = panel.classList.toggle('hidden');
+            if (btn) btn.setAttribute('aria-expanded', String(!willHide));
+            if (label) label.textContent = willHide ? 'Filtreleri Göster' : 'Filtreleri Gizle';
         }
 
         // ---- Liste filtreleri ----
@@ -2371,30 +2394,30 @@
             }
 
             container.innerHTML = items.map(item => `
-                <div class="bg-white p-6 rounded-card border border-slate-200 space-y-4 shadow-sm hover:shadow-md transition">
+                <div class="bg-white p-4 sm:p-6 rounded-card border border-slate-200 space-y-4 shadow-sm hover:shadow-md transition">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-24 h-14 ${item.logoBg} rounded-2xl flex items-center justify-center p-2 shrink-0 border">
+                        <div class="flex items-start sm:items-center gap-3 sm:gap-4 w-full min-w-0">
+                            <div class="w-20 h-12 sm:w-24 sm:h-14 ${item.logoBg} rounded-2xl flex items-center justify-center p-2 shrink-0 border">
                                 ${item.logoSvg}
                             </div>
-                            <div>
-                                <div class="flex items-center space-x-2">
-                                    <h4 class="font-bold text-slate-900 text-lg">${item.name}</h4>
-                                    <span class="bg-blue-50 text-brand-lightBlue border border-blue-200 text-[10px] px-2 py-0.5 rounded-full font-bold">${item.badge}</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="font-bold text-slate-900 text-base sm:text-lg leading-tight">${item.name}</h4>
+                                    <span class="bg-blue-50 text-brand-lightBlue border border-blue-200 text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap">${item.badge}</span>
                                 </div>
-                                <div class="flex items-center space-x-3 text-xs text-slate-500 mt-1">
+                                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 mt-1">
                                     ${starRating(item.rating, 'text-[11px]')}
-                                    <span class="text-slate-500 font-semibold">(${item.reviewsCount} Onaylı Yorum)</span>
-                                    <span>•</span>
-                                    <span class="text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Ort. ₺${item.price.toLocaleString('tr-TR')} / ay</span>
+                                    <span class="text-slate-500 font-semibold whitespace-nowrap">(${item.reviewsCount} Onaylı Yorum)</span>
+                                    <span class="hidden sm:inline">•</span>
+                                    <span class="text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap">Ort. ₺${item.price.toLocaleString('tr-TR')} / ay</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-                            <button onclick="visitSoftwareSite(event, '${item.id}')" class="bg-white border border-slate-300 text-slate-700 text-xs px-5 py-2.5 rounded-pill font-bold hover:bg-slate-50 hover:border-brand-lightBlue hover:text-brand-lightBlue transition shadow-sm">
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start sm:justify-end">
+                            <button onclick="visitSoftwareSite(event, '${item.id}')" class="flex-1 sm:flex-none inline-flex items-center justify-center whitespace-nowrap bg-white border border-slate-300 text-slate-700 text-[11px] sm:text-xs px-3 sm:px-5 py-2.5 rounded-pill font-bold hover:bg-slate-50 hover:border-brand-lightBlue hover:text-brand-lightBlue transition shadow-sm">
                                 <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>Sayfayı Ziyaret Et
                             </button>
-                            <button onclick="openDetail('${item.id}')" class="bg-brand-lightBlue text-white text-xs px-5 py-2.5 rounded-pill font-bold hover:bg-blue-600 transition shadow-sm">
+                            <button onclick="openDetail('${item.id}')" class="flex-1 sm:flex-none inline-flex items-center justify-center whitespace-nowrap bg-brand-lightBlue text-white text-[11px] sm:text-xs px-3 sm:px-5 py-2.5 rounded-pill font-bold hover:bg-blue-600 transition shadow-sm">
                                 İncele & Detay
                             </button>
                         </div>
@@ -2649,14 +2672,14 @@
 
             headerCard.innerHTML = `
                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-28 h-16 ${s.logoBg} rounded-2xl flex items-center justify-center p-3 shrink-0 border">
+                    <div class="flex items-start sm:items-center gap-3 sm:gap-4 w-full min-w-0">
+                        <div class="w-24 h-14 sm:w-28 sm:h-16 ${s.logoBg} rounded-2xl flex items-center justify-center p-3 shrink-0 border">
                             ${s.logoSvg}
                         </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-900">${s.name}</h2>
-                            <p class="text-xs text-slate-500 mt-1">Geliştirici: ${s.vendor} | Kategori: ${s.category}</p>
-                            <div class="flex items-center space-x-2 text-xs text-amber-500 font-bold mt-1.5">
+                        <div class="min-w-0">
+                            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">${s.name}</h2>
+                            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Geliştirici: ${s.vendor} | Kategori: ${s.category}</p>
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-amber-500 font-bold mt-1.5">
                                 ${starRating(s.rating, 'text-xs')}
                                 <span class="text-slate-400 font-normal">(${s.reviewsCount} Onaylı Kullanıcı Yorumu)</span>
                             </div>
@@ -3034,7 +3057,7 @@
                 <tr class="hover:bg-slate-50 transition">
                     <td class="py-3 px-4">
                         <div class="flex items-center gap-3">
-                            <span class="w-10 h-10 rounded-xl ${color.icon} flex items-center justify-center shrink-0"><i class="fa-solid ${escapeHtml(cat.icon || 'fa-layer-group')}"></i></span>
+                            <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${color.icon} flex items-center justify-center shrink-0"><i class="fa-solid ${escapeHtml(cat.icon || 'fa-layer-group')}"></i></span>
                             <div>
                                 <span class="block font-bold text-slate-900">${escapeHtml(cat.name)}</span>
                                 <span class="text-[10px] text-slate-500">${escapeHtml(cat.short || cat.name)}</span>
