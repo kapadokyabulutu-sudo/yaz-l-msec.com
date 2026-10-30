@@ -61,6 +61,287 @@
         @media (max-width: 359px) {
             .header-cat-label { display: none; }
         }
+
+        /* Mobil: masaüstü yerleşimini koruyarak öğeleri küçült */
+        @media (max-width: 767px) {
+            header > div {
+                height: 3.25rem !important;
+                padding-left: .6rem !important;
+                padding-right: .6rem !important;
+                gap: .25rem !important;
+            }
+            header > div > div:first-child { gap: .35rem !important; }
+            #site-logo-fallback, #site-logo-img {
+                width: 2rem !important;
+                height: 2rem !important;
+                border-radius: .6rem !important;
+                font-size: 1rem !important;
+            }
+            header > div > div:first-child > span { font-size: 1rem !important; }
+            header nav {
+                display: flex !important;
+                gap: .45rem !important;
+                font-size: .52rem !important;
+                line-height: 1 !important;
+                white-space: nowrap;
+            }
+            header nav > * + * { margin-left: 0 !important; }
+            header nav button { padding: 0 !important; }
+            header > div > div:last-child { gap: .25rem !important; }
+            header > div > div:last-child button {
+                padding: .3rem .4rem !important;
+                font-size: .55rem !important;
+            }
+
+            #page-home { row-gap: 1.25rem !important; }
+            #page-home > * + * { margin-top: 1.25rem !important; }
+            #page-home h2 { font-size: 1rem !important; }
+            #page-home h2 + p { font-size: .58rem !important; }
+            #page-home > div > div:first-child button { font-size: .55rem !important; }
+
+            #home-hero {
+                grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) !important;
+                gap: .4rem .55rem !important;
+                padding: .65rem !important;
+                align-items: start !important;
+            }
+            #home-hero-copy { display: contents !important; }
+            #home-hero-title {
+                grid-column: 1;
+                grid-row: 1;
+                font-size: 1.02rem !important;
+                line-height: 1.12 !important;
+            }
+            #home-hero-desc {
+                grid-column: 1;
+                grid-row: 2;
+                font-size: .58rem !important;
+                line-height: 1.35 !important;
+            }
+            #home-hero-search {
+                grid-column: 1 / -1;
+                grid-row: 3;
+                max-width: none !important;
+                margin-top: .15rem;
+            }
+            #home-quick-tags {
+                grid-column: 1 / -1;
+                grid-row: 4;
+                gap: .2rem !important;
+                font-size: .5rem !important;
+            }
+            #home-quick-tags button {
+                font-size: .48rem !important;
+                padding: .12rem .32rem !important;
+            }
+            #home-hero-search > div:first-child { padding: .15rem !important; }
+            #home-search-input {
+                font-size: .6rem !important;
+                padding: .35rem .2rem !important;
+            }
+            #home-hero-search i {
+                font-size: .7rem !important;
+                padding-left: .4rem !important;
+            }
+            #home-hero-search button {
+                font-size: .55rem !important;
+                padding: .35rem .5rem !important;
+            }
+            #home-hero-visual {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+                display: block !important;
+            }
+            #home-hero-visual > div {
+                padding: .2rem !important;
+                border-radius: .65rem !important;
+            }
+            #home-hero-image {
+                height: 6.2rem !important;
+                border-radius: .45rem !important;
+            }
+            #home-hero-visual > div > div.absolute { padding: .3rem !important; }
+            #home-hero-visual .text-xs {
+                font-size: .42rem !important;
+                padding: .12rem .28rem !important;
+            }
+            #home-hero-visual h4 {
+                font-size: .48rem !important;
+                line-height: 1.15 !important;
+            }
+
+            #home-category-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: .35rem !important;
+            }
+            #home-category-grid > div {
+                border-radius: .65rem !important;
+                min-width: 0;
+            }
+            #home-category-grid > div > div:first-child > div:first-child { height: 4.2rem !important; }
+            #home-category-grid .absolute.bottom-3 {
+                width: 1.35rem !important;
+                height: 1.35rem !important;
+                bottom: .25rem !important;
+                left: .3rem !important;
+                border-radius: .4rem !important;
+                font-size: .55rem !important;
+            }
+            #home-category-grid > div > div:nth-child(2) { padding: .35rem .35rem 0 !important; }
+            #home-category-grid h3 {
+                font-size: .58rem !important;
+                line-height: 1.15 !important;
+            }
+            #home-category-grid p {
+                font-size: .45rem !important;
+                line-height: 1.25 !important;
+                margin-top: .18rem !important;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+            #home-category-grid > div > div:last-child {
+                padding: .28rem .35rem !important;
+                margin-top: .2rem !important;
+                font-size: .42rem !important;
+            }
+            #home-category-grid > div > div:last-child span { font-size: .42rem !important; }
+
+            #home-popular-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: .4rem !important;
+            }
+            #home-popular-grid > div { border-radius: .65rem !important; }
+            #home-popular-grid > div > div:nth-child(2) {
+                padding: .4rem !important;
+                gap: .3rem !important;
+            }
+            #home-popular-grid > div > div:nth-child(2) > div:first-child { gap: .35rem !important; }
+            #home-popular-grid > div > div:nth-child(2) > div:first-child > div:first-child {
+                width: 2rem !important;
+                height: 2rem !important;
+                padding: .15rem !important;
+                border-radius: .45rem !important;
+            }
+            #home-popular-grid h4 { font-size: .58rem !important; }
+            #home-popular-grid .text-\[10px\] { font-size: .42rem !important; }
+            #home-popular-grid .text-\[11px\] { font-size: .45rem !important; }
+            #home-popular-grid p {
+                font-size: .45rem !important;
+                line-height: 1.25 !important;
+            }
+            #home-popular-grid button {
+                font-size: .45rem !important;
+                padding: .2rem .25rem !important;
+            }
+            #home-popular-grid > div > div:nth-child(2) > div:nth-child(2) { padding-top: .25rem !important; }
+
+            #home-reviews-grid {
+                grid-template-columns: 1fr !important;
+                gap: .4rem !important;
+            }
+            #home-reviews-grid > div { border-radius: .65rem !important; }
+            #home-reviews-grid > div > div:nth-child(2) {
+                padding: .45rem !important;
+                gap: .3rem !important;
+            }
+            #home-reviews-grid h4 { font-size: .62rem !important; }
+            #home-reviews-grid p { font-size: .52rem !important; }
+
+            #software-cards-container > div {
+                padding: .55rem !important;
+                border-radius: .7rem !important;
+            }
+            #software-cards-container > div > div:first-child {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: .35rem !important;
+            }
+            #software-cards-container > div > div:first-child > div:first-child {
+                width: 100% !important;
+                gap: .35rem !important;
+                align-items: center !important;
+            }
+            #software-cards-container > div > div:first-child > div:first-child > div:first-child {
+                width: 3rem !important;
+                height: 2rem !important;
+                padding: .2rem !important;
+                border-radius: .45rem !important;
+            }
+            #software-cards-container h4 { font-size: .68rem !important; }
+            #software-cards-container .text-\[10px\] { font-size: .42rem !important; }
+            #software-cards-container .text-xs { font-size: .5rem !important; }
+            #software-cards-container > div > div:first-child > div:last-child {
+                width: auto !important;
+                flex-direction: column !important;
+                gap: .18rem !important;
+                justify-content: center !important;
+            }
+            #software-cards-container > div > div:first-child > div:last-child button {
+                width: auto !important;
+                flex: none !important;
+                font-size: .42rem !important;
+                padding: .18rem .28rem !important;
+            }
+            #software-cards-container > div > p {
+                font-size: .5rem !important;
+                padding-top: .3rem !important;
+            }
+            #software-cards-container > div > div:last-child { font-size: .45rem !important; }
+
+            #detail-header-card > div:first-child {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: .35rem !important;
+            }
+            #detail-header-card > div:first-child > div:first-child {
+                width: 100% !important;
+                gap: .35rem !important;
+                align-items: center !important;
+            }
+            #detail-header-card > div:first-child > div:first-child > div:first-child {
+                width: 3.2rem !important;
+                height: 2.1rem !important;
+                padding: .2rem !important;
+                border-radius: .45rem !important;
+            }
+            #detail-header-card h2 { font-size: .9rem !important; }
+            #detail-header-card p { font-size: .5rem !important; }
+            #detail-header-card > div:first-child > div:last-child {
+                width: auto !important;
+                flex-direction: column !important;
+                gap: .18rem !important;
+                align-items: flex-end !important;
+            }
+            #detail-header-card > div:first-child > div:last-child button {
+                font-size: .42rem !important;
+                padding: .18rem .28rem !important;
+            }
+            #detail-header-card > div:first-child > div:last-child span {
+                font-size: .42rem !important;
+                padding: .12rem .28rem !important;
+            }
+            #detail-header-card > div:nth-child(2) {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: .25rem !important;
+                padding-top: .35rem !important;
+            }
+            #detail-header-card > div:nth-child(2) > div {
+                padding: .3rem !important;
+                border-radius: .4rem !important;
+            }
+            #detail-header-card > div:nth-child(2) span { font-size: .4rem !important; }
+            #detail-header-card > div:nth-child(2) p { font-size: .65rem !important; }
+
+            #category-list-rows > div[data-cat] {
+                padding: .45rem !important;
+                gap: .25rem !important;
+            }
+            #category-list-rows h4 { font-size: .65rem !important; }
+            #category-list-rows p { font-size: .48rem !important; }
+            #category-list-rows span { font-size: .42rem !important; }
+        }
     </style>
 </head>
 <body class="bg-brand-grayBg text-slate-800 antialiased min-h-screen flex flex-col">
@@ -108,20 +389,20 @@
         <!-- ================= PAGE 1: ANA SAYFA ================= -->
         <section id="page-home" class="space-y-12">
             <!-- Hero Search Area -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center bg-gradient-to-b from-brand-softBlue to-transparent p-5 sm:p-8 md:p-10 rounded-card border border-blue-100">
-                <div class="lg:col-span-7 space-y-5">
-                    <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <div id="home-hero" class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center bg-gradient-to-b from-brand-softBlue to-transparent p-5 sm:p-8 md:p-10 rounded-card border border-blue-100">
+                <div id="home-hero-copy" class="lg:col-span-7 space-y-5">
+                    <h1 id="home-hero-title" class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                         İşletmeniz İçin En Doğru Yerli Yazılımı Bulun
                     </h1>
-                    <p class="text-slate-600 text-base md:text-lg">
+                    <p id="home-hero-desc" class="text-slate-600 text-base md:text-lg">
                         Binlerce gerçek kullanıcı yorumuyla Türkiye'deki ERP, Ön Muhasebe, İK ve CRM yazılımlarını saniyeler içinde inceleyin.
                     </p>
 
                     <!-- Search Input Bar (Capterra tarzı canlı öneri) -->
-                    <div class="relative max-w-xl">
+                    <div id="home-hero-search" class="relative max-w-xl">
                         <div class="flex items-center bg-white shadow-lg rounded-pill p-1.5 sm:p-2 border border-slate-200">
                             <i class="fa-solid fa-magnifying-glass text-slate-400 pl-3 sm:pl-4 text-base sm:text-lg shrink-0"></i>
-                            <input type="text" id="home-search-input" autocomplete="off" oninput="onHomeSearchInput(this.value)" onkeydown="onHomeSearchKey(event)" onfocus="onHomeSearchInput(this.value)" placeholder="Yazılım, kategori veya ihtiyaç yazın (Örn: ERP, muhasebe, İK, POS)" class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 sm:py-3 focus:outline-none text-slate-700 rounded-pill text-sm md:text-base">
+                            <input type="text" id="home-search-input" autocomplete="off" oninput="onHomeSearchInput(this.value)" onkeydown="onHomeSearchKey(event)" onfocus="onHomeSearchInput(this.value)" placeholder="Yazılım, kategori veya ihtiyaç yazın" class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 sm:py-3 focus:outline-none text-slate-700 rounded-pill text-sm md:text-base">
                             <button onclick="submitHomeSearch()" aria-label="Arama Yap" class="bg-brand-lightBlue hover:bg-blue-600 text-white font-semibold px-3 sm:px-8 py-2.5 sm:py-3 rounded-pill transition shadow-sm text-xs sm:text-sm md:text-base shrink-0">
                                 <span class="hidden sm:inline">Arama Yap</span><span class="sm:hidden">Ara</span>
                             </button>
@@ -143,9 +424,9 @@
                 </div>
 
                 <!-- Hero Visual -->
-                <div class="lg:col-span-5 flex justify-center">
+                <div id="home-hero-visual" class="lg:col-span-5 flex justify-center">
                     <div class="bg-white p-4 rounded-2xl shadow-xl border border-slate-200 relative overflow-hidden w-full">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80" alt="Yazılım Paneli" class="rounded-xl object-cover h-64 w-full">
+                        <img id="home-hero-image" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80" alt="Yazılım Paneli" class="rounded-xl object-cover h-64 w-full">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-4">
                             <div class="text-white space-y-1">
                                 <span class="bg-brand-lightBlue text-xs px-2.5 py-1 rounded-full font-bold">30+ Yerli Yazılım</span>
@@ -285,7 +566,7 @@
             <div class="max-w-2xl mx-auto">
                 <div class="flex items-center bg-white shadow-sm rounded-pill p-1.5 border border-slate-300">
                     <i class="fa-solid fa-magnifying-glass text-slate-400 pl-3 sm:pl-4 shrink-0"></i>
-                    <input type="text" id="category-search-input" autocomplete="off" oninput="filterCategoryList(this.value)" placeholder="Kategoriler arasında arayın (Örn: İK, Stok, POS, E-Ticaret)..." class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 focus:outline-none text-slate-700 text-sm rounded-pill">
+                    <input type="text" id="category-search-input" autocomplete="off" oninput="filterCategoryList(this.value)" placeholder="Kategoriler arasında arayın" class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 focus:outline-none text-slate-700 text-sm rounded-pill">
                     <button onclick="filterCategoryList(document.getElementById('category-search-input').value)" class="bg-brand-lightBlue text-white text-xs sm:text-sm px-3 sm:px-6 py-2.5 rounded-pill font-semibold hover:bg-blue-600 transition shrink-0">Bul</button>
                 </div>
             </div>
@@ -412,7 +693,7 @@
         <section id="page-listing" class="hidden space-y-6">
             <div class="flex items-center bg-white shadow-sm rounded-pill p-1.5 border border-slate-300">
                 <i class="fa-solid fa-magnifying-glass text-slate-400 pl-3 sm:pl-4 shrink-0"></i>
-                <input type="text" id="listing-search" autocomplete="off" oninput="onListingSearch(this.value)" placeholder="Yazılım ara (Örn: Paraşüt, Kolay İK, Adisyo, StockMount)..." class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 focus:outline-none text-slate-800 font-medium text-sm rounded-pill">
+                <input type="text" id="listing-search" autocomplete="off" oninput="onListingSearch(this.value)" placeholder="Yazılım ara (Örn: Paraşüt, Kolay İK)" class="flex-1 min-w-0 px-2 sm:px-4 py-2.5 focus:outline-none text-slate-800 font-medium text-sm rounded-pill">
                 <button onclick="onListingSearch(document.getElementById('listing-search').value)" class="bg-brand-lightBlue text-white text-xs sm:text-sm px-3 sm:px-6 py-2.5 sm:py-2 rounded-pill font-semibold shrink-0"><span class="hidden sm:inline">Arama Yap</span><span class="sm:hidden">Ara</span></button>
             </div>
 
