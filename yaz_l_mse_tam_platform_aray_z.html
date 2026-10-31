@@ -188,7 +188,12 @@
             #category-list-rows h4 { font-size: .9rem !important; line-height: 1.35 !important; }
             #category-list-rows p { font-size: .78rem !important; line-height: 1.4 !important; }
             #category-list-rows span { font-size: .68rem !important; }
-            #popular-category-summaries h3 { font-size: .9rem !important; }
+            #popular-category-summaries h3 {
+                font-size: .9rem !important;
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
             #popular-category-summaries p { font-size: .8rem !important; }
 
             /* ---------- YAZILIM LİSTESİ ---------- */
@@ -240,6 +245,26 @@
             #review-modal { padding: .7rem !important; }
             #review-modal > div { padding: 1.15rem !important; }
             footer { font-size: .72rem !important; text-align: center; }
+        }
+
+        /* Çok küçük telefonlar (320–359 px) */
+        @media (max-width: 359px) {
+            #category-list-rows > div[data-cat] {
+                padding: .7rem !important;
+                gap: .45rem !important;
+            }
+            #category-list-rows > div[data-cat] > div:first-child { gap: .55rem !important; }
+            #category-list-rows > div[data-cat] .w-9 {
+                width: 2rem !important;
+                height: 2rem !important;
+                font-size: .9rem !important;
+            }
+            #category-list-rows span {
+                font-size: .62rem !important;
+                padding-left: .45rem !important;
+                padding-right: .45rem !important;
+            }
+            #home-hero-title { font-size: 1.55rem !important; }
         }
     </style>
 </head>
