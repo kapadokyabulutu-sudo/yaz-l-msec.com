@@ -1436,10 +1436,15 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 mb-1">Puanınız</label>
-                    <div class="flex items-center gap-3">
-                        <div id="review-rating-stars" class="flex items-center gap-1 text-2xl"></div>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <div id="review-rating-stars" class="flex items-center gap-1 text-2xl select-none"></div>
                         <span id="review-rating-label" class="text-xs font-bold text-slate-500">5.0 / 5</span>
+                        <div class="flex items-center gap-1.5 sm:ml-auto">
+                            <input type="text" id="review-rating-input" inputmode="decimal" autocomplete="off" maxlength="4" value="5.0" aria-label="Puan (0-5)" oninput="onReviewRatingInput(this.value)" onblur="normalizeReviewRatingInput()" class="w-20 p-2 rounded-xl border border-slate-300 text-center font-bold text-slate-700">
+                            <span class="text-slate-400 font-bold">/ 5</span>
+                        </div>
                     </div>
+                    <p class="text-[10px] text-slate-400 mt-1">En az 1 puan. Yarım puan için yıldızın sol yarısına tıklayın veya 4.5 gibi yazın.</p>
                     <input type="hidden" id="review-rating" value="5">
                 </div>
                 <div>
@@ -1488,6 +1493,7 @@
         // ================= KALICI DURUM (HTML İÇİNE GÖMÜLEN JSON) =================
         const STATE_STORAGE_KEY = 'yazilimsec_state_v2';
         const SITE_ID_KEY = 'yazilimsec_site_id_v1';
+        const OFFLINE_REVIEWS_KEY = 'yazilimsec_offline_reviews_v1';
         const API_BASE = '/api';
         let apiMode = false;
         let stateDirty = false;
@@ -3086,7 +3092,7 @@
                         </div>
                     </td>
                     <td class="py-3 px-4 text-slate-600">${escapeHtml(s.category)}</td>
-                    <td class="py-3 px-4 text-amber-500 font-bold whitespace-nowrap">★ ${Number(s.rating).toFixed(1)}</td>
+                    <td class="py-3 px-4 text-amber-500 font-bold whitespace-nowrap">${starRating(s.rating)} <span class="text-slate-500 ml-1">${snapReviewRating(s.rating).toFixed(1)}</span></td>
                     <td class="py-3 px-4 text-emerald-700 font-bold whitespace-nowrap">₺${s.price.toLocaleString('tr-TR')} / ay</td>
                     <td class="py-3 px-4 text-center">
                         <button onclick="toggleSoftwarePopular('${jsAttr(s.id)}')" class="${s.popular ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'} border px-3 py-1 rounded-pill font-bold text-[11px] hover:opacity-80 transition" title="${s.popular ? 'Popüler yazılımlardan çıkar' : 'Popüler yazılımlara ekle'}">
@@ -3682,6 +3688,84 @@
             return await res.json();
         }
 
+        // ================= ÇEVRİMDIŞI YORUM KUYRUĞU =================
+        // Veritabanı kapalıyken gönderilen yorumlar burada tutulur.
+        // Site sunucu üzerinden açıldığında /api/reviews adresine tek tek gönderilir.
+        function loadOfflineReviews() {
+            try {
+                const raw = localStorage.getItem(OFFLINE_REVIEWS_KEY);
+                const list = raw ? JSON.parse(raw) : [];
+                return Array.isArray(list)
+                    ? list.filter(r => r && typeof r === 'object' && r.id)
+                    : [];
+            } catch (err) {
+                return [];
+            }
+        }
+
+        function saveOfflineReviews(list) {
+            try {
+                localStorage.setItem(OFFLINE_REVIEWS_KEY, JSON.stringify(Array.isArray(list) ? list : []));
+            } catch (err) {
+                console.warn('Çevrimdışı yorum kuyruğu yazılamadı:', err);
+            }
+        }
+
+        function queueOfflineReview(review) {
+            if (!review || !review.id) return;
+            const list = loadOfflineReviews();
+            if (!list.some(r => String(r.id) === String(review.id))) {
+                list.push(review);
+                saveOfflineReviews(list);
+            }
+        }
+
+        function removeOfflineReview(id) {
+            saveOfflineReviews(loadOfflineReviews().filter(r => String(r.id) !== String(id)));
+        }
+
+        async function syncOfflineReviews() {
+            // Yalnızca sunucu tarafından eklenen işaret varsa dene; statik dosyada boşuna istek atma.
+            if (!window.__YAZILIMSEC_SQLITE__) return false;
+            const queue = loadOfflineReviews();
+            if (!queue.length) return true;
+
+            let allOk = true;
+            for (const review of queue) {
+                try {
+                    const res = await fetch(API_BASE + '/reviews', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(review)
+                    });
+                    if (!res.ok) throw new Error('API ' + res.status);
+                    removeOfflineReview(review.id);
+                } catch (err) {
+                    console.warn('Çevrimdışı yorum veritabanına gönderilemedi:', err);
+                    allOk = false;
+                    break; // İlk hatada dur; sonraki açılışta yeniden denenecek.
+                }
+            }
+            return allOk;
+        }
+
+        // Sunucudan gelen bekleyen yorumlarla yerel kuyruğu birleştirir.
+        // Böylece admin paneli, kuyruk veritabanına gönderilmeden önce de yorumu görür.
+        function mergeOfflineReviewsIntoPending() {
+            const queue = loadOfflineReviews();
+            if (!queue.length) return;
+            const ids = new Set(pendingReviews.map(r => String((r && r.id) || '')));
+            let added = false;
+            queue.forEach(r => {
+                const id = String((r && r.id) || '');
+                if (!id || ids.has(id)) return;
+                ids.add(id);
+                pendingReviews.push(Object.assign({}, r));
+                added = true;
+            });
+            if (added) renderPendingReviews();
+        }
+
         function resetSiteLogoDisplay() {
             const img = document.getElementById('site-logo-img');
             const fallback = document.getElementById('site-logo-fallback');
@@ -3756,9 +3840,11 @@
                     // Veritabanı boş: mevcut site verisini ilk kayıt olarak SQLite'a aktar.
                     apiMode = true;
                     if (savedAppState && savedAppState.siteLogoData) applySiteLogoData(savedAppState.siteLogoData);
+                    mergeOfflineReviewsIntoPending();
                     try {
                         await saveStateToApi(buildPersistedState());
                         showDatabaseModeUI();
+                        syncOfflineReviews();
                     } catch (err) {
                         console.warn('İlk veritabanı kaydı yapılamadı:', err);
                         apiMode = false;
@@ -3771,7 +3857,10 @@
                 applyStateFromApi(state);
                 apiMode = true;
                 loadedStateIsNewerThanFile = false;
+                // Çevrimdışı gönderilen yorumları hem ekranda göster hem veritabanına ilet.
+                mergeOfflineReviewsIntoPending();
                 showDatabaseModeUI();
+                syncOfflineReviews();
                 return true;
             } catch (err) {
                 // API yoksa site tek dosya / localStorage modunda çalışmaya devam eder.
@@ -3949,22 +4038,94 @@
         // ================= KULLANICI YORUM EKLEME =================
         let reviewRatingValue = 5;
 
+        // Puanı en yakın yarım yıldıza yuvarlar. Yorumlarda alt sınır 1'dir.
+        // 4.4 -> 4.5, 4.6 -> 4.5, 4.2 -> 4.0, 4.8 -> 5.0
+        function snapReviewRating(value, minValue = 0) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return Math.max(minValue, 5);
+            return Math.min(5, Math.max(minValue, Math.round(numeric * 2) / 2));
+        }
+
         function renderReviewRatingStars() {
             const box = document.getElementById('review-rating-stars');
             const label = document.getElementById('review-rating-label');
             const hidden = document.getElementById('review-rating');
+            const input = document.getElementById('review-rating-input');
+
+            reviewRatingValue = snapReviewRating(reviewRatingValue, 1);
             if (hidden) hidden.value = reviewRatingValue;
             if (label) label.innerText = reviewRatingValue.toFixed(1) + ' / 5';
+            // Kullanıcı elle yazarken imleci/metni bozma; sadece yıldızları güncelle.
+            if (input && document.activeElement !== input) input.value = reviewRatingValue.toFixed(1);
             if (!box) return;
-            box.innerHTML = [1, 2, 3, 4, 5].map(i =>
-                `<button type="button" onclick="setReviewRating(${i})" title="${i} yıldız" class="transition ${i <= reviewRatingValue ? 'text-amber-400' : 'text-slate-300'} hover:text-amber-400">
-                    <i class="fa-solid fa-star"></i>
-                </button>`).join('');
+
+            box.innerHTML = [1, 2, 3, 4, 5].map(i => {
+                const full = reviewRatingValue >= i;
+                const half = !full && reviewRatingValue >= i - 0.5;
+                const icon = full
+                    ? 'fa-solid fa-star'
+                    : (half ? 'fa-solid fa-star-half-stroke' : 'fa-regular fa-star');
+                const color = (full || half) ? 'text-amber-400' : 'text-slate-300';
+                const title = i === 1 ? '1 yıldız' : `${i - 0.5} veya ${i} yıldız`;
+                return `<button type="button" onclick="setReviewRatingFromClick(event, ${i})" title="${title}" aria-label="${i} yıldız" class="transition ${color} hover:text-amber-400 focus:outline-none">
+                    <i class="${icon}"></i>
+                </button>`;
+            }).join('');
         }
 
-        function setReviewRating(v) {
-            reviewRatingValue = v;
+        // Yıldızın sol yarısına tıklanınca yarım, sağ yarısına tıklanınca tam puan verir.
+        function setReviewRatingFromClick(event, star) {
+            let value = star;
+            // detail === 0 ise klavye ile etkinleştirilmiştir; tam yıldız ver.
+            if (event && event.detail !== 0) {
+                const rect = event.currentTarget.getBoundingClientRect();
+                if (event.clientX - rect.left < rect.width / 2) value = star - 0.5;
+            }
+            setReviewRating(value);
+        }
+
+        function setReviewRating(value) {
+            reviewRatingValue = snapReviewRating(value, 1);
+            const input = document.getElementById('review-rating-input');
+            if (input) input.value = reviewRatingValue.toFixed(1);
             renderReviewRatingStars();
+        }
+
+        // Elle yazılan puan: yalnızca rakam ve tek bir nokta kabul edilir.
+        // Ondalık kısım tek basamakla sınırlıdır; yıldızlar anında en yakın yarım puana yuvarlanır.
+        function onReviewRatingInput(rawValue) {
+            const input = document.getElementById('review-rating-input');
+            let cleaned = String(rawValue == null ? '' : rawValue)
+                .replace(/,/g, '.')
+                .replace(/[^0-9.]/g, '');
+            const dot = cleaned.indexOf('.');
+            if (dot !== -1) {
+                cleaned = cleaned.slice(0, dot + 1) + cleaned.slice(dot + 1).replace(/\./g, '');
+                cleaned = cleaned.slice(0, dot + 2);
+            }
+            if (input && input.value !== cleaned) input.value = cleaned;
+
+            if (cleaned === '' || cleaned === '.') {
+                reviewRatingValue = 0;
+                renderReviewRatingStars();
+                return;
+            }
+            const numeric = Number(cleaned);
+            if (Number.isFinite(numeric)) {
+                reviewRatingValue = snapReviewRating(numeric, 1);
+                renderReviewRatingStars();
+            }
+        }
+
+        // Alan boş bırakılırsa varsayılan 5.0'a döner; yazılan değer tek ondalık olarak gösterilir.
+        function normalizeReviewRatingInput() {
+            const input = document.getElementById('review-rating-input');
+            if (!input) return;
+            const raw = String(input.value || '').trim().replace(',', '.');
+            const numeric = Number(raw);
+            reviewRatingValue = (raw !== '' && Number.isFinite(numeric)) ? snapReviewRating(numeric, 1) : 5;
+            renderReviewRatingStars();
+            input.value = reviewRatingValue.toFixed(1);
         }
 
         function openReviewModal() {
@@ -3979,6 +4140,8 @@
                 if (el) el.value = '';
             });
             reviewRatingValue = 5;
+            const ratingInput = document.getElementById('review-rating-input');
+            if (ratingInput) ratingInput.value = '5.0';
             renderReviewRatingStars();
             document.getElementById('review-modal').classList.remove('hidden');
         }
@@ -3988,35 +4151,54 @@
             if (m) m.classList.add('hidden');
         }
 
-        // Yorum gönderilir -> admin onay kuyruğuna düşer
+        // Yorum gönderilir -> admin onay kuyruğuna düşer.
+        // Sunucu/veritabanı kapalıysa yorum tarayıcıda kuyruğa alınır; veritabanı açılınca otomatik gönderilir.
         function submitUserReview(event) {
             if (event) event.preventDefault();
+
+            normalizeReviewRatingInput();
 
             const softwareId = document.getElementById('review-software').value || 'genel';
             const name = document.getElementById('review-name').value.trim();
             const title = document.getElementById('review-title').value.trim() || 'Kullanıcı';
             const text = document.getElementById('review-text').value.trim();
-            const rating = Number(document.getElementById('review-rating').value) || 5;
+            const rating = snapReviewRating(reviewRatingValue, 1);
 
             if (!name || !text) {
                 showToast("Lütfen adınızı ve yorumunuzu yazın!");
                 return;
             }
+            if (rating < 1) {
+                showToast("Lütfen 1 ile 5 arasında bir puan seçin.");
+                return;
+            }
 
-            pendingReviews.push({
-                id: 'pr-' + Date.now(),
+            const review = {
+                id: 'pr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
                 softwareId: softwareId,
                 name: name,
                 title: title,
                 rating: rating,
                 text: text,
                 createdAt: new Date().toISOString()
-            });
+            };
 
-            renderPendingReviews();   // admin tablosu ve "bekleyen yorum" rozeti güncellenir
-            persistAfterChange({ ensureHandle: false }); // Normal kullanıcıya HTML dosyası seçtirilmez.
+            pendingReviews.push(review);
+            queueOfflineReview(review);      // Veritabanına ulaşana kadar yerel kuyrukta tut.
+            saveStateToLocalStorage();
+            renderPendingReviews();          // admin tablosu ve "bekleyen yorum" rozeti güncellenir
             closeReviewModal();
-            showToast("Yorumunuz alındı! Editör onayından sonra yayınlanacak.");
+
+            if (apiMode) {
+                showToast("Yorumunuz alındı! Editör onayından sonra yayınlanacak.");
+                syncOfflineReviews().then(ok => {
+                    if (!ok) showToast("Yorumunuz tarayıcıda saklandı; veritabanına bağlanınca otomatik gönderilecek.");
+                });
+            } else {
+                // Normal kullanıcıya HTML dosyası seçtirilmez; bağlı dosya varsa sessizce yazılır.
+                persistStateToFile({ ensureHandle: false });
+                showToast("Yorumunuz kaydedildi! Veritabanı açıldığında admin paneline otomatik gönderilecek.");
+            }
         }
 
         // ================= LOGO YÖNETİMİ (Yazılım ekle / düzenle sayfaları) =================
@@ -4181,7 +4363,7 @@
                         <span class="font-bold text-slate-800 block">${r.name}</span>
                         <span class="text-[10px] text-slate-500">${r.title}</span>
                     </td>
-                    <td class="py-3 px-4 text-amber-500 font-bold">★ ${r.rating}</td>
+                    <td class="py-3 px-4 text-amber-500 font-bold whitespace-nowrap">${starRating(r.rating)} <span class="text-slate-500 ml-1">${snapReviewRating(r.rating).toFixed(1)}</span></td>
                     <td class="py-3 px-4 text-slate-600 max-w-xs">${r.text}</td>
                     <td class="py-3 px-4 text-center space-x-2 whitespace-nowrap">
                         <button onclick="approveReview('${r.id}')" class="bg-emerald-600 text-white px-3 py-1 rounded-pill font-bold text-[11px] hover:bg-emerald-700"><i class="fa-solid fa-check mr-1"></i>Onayla</button>
@@ -4220,7 +4402,7 @@
                         <span class="font-bold text-slate-800 block">${r.name}</span>
                         <span class="text-[10px] text-slate-500">${r.title || 'Kullanıcı'}</span>
                     </td>
-                    <td class="py-3 px-4 text-amber-500 font-bold">★ ${r.rating}</td>
+                    <td class="py-3 px-4 text-amber-500 font-bold whitespace-nowrap">${starRating(r.rating)} <span class="text-slate-500 ml-1">${snapReviewRating(r.rating).toFixed(1)}</span></td>
                     <td class="py-3 px-4 text-slate-600 max-w-xs">${r.text}</td>
                     <td class="py-3 px-4 text-center space-x-2 whitespace-nowrap">
                         <button onclick="unapproveReview(${index})" class="bg-amber-500 text-slate-900 px-3 py-1 rounded-pill font-bold text-[11px] hover:bg-amber-600"><i class="fa-solid fa-rotate-left mr-1"></i>Onayı Kaldır</button>

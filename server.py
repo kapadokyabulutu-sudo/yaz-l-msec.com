@@ -716,6 +716,68 @@ def get_activity(db_path: Path, limit: int = 200):
         conn.close()
 
 
+def snap_rating(value, default: float = 5.0) -> float:
+    """Puanı 1-5 aralığında en yakın yarım yıldıza yuvarlar (4.4 -> 4.5, 4.6 -> 4.5)."""
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        numeric = default
+    if numeric != numeric:  # NaN
+        numeric = default
+    numeric = max(1.0, min(5.0, numeric))
+    return int(numeric * 2 + 0.5) / 2.0
+
+
+def add_pending_review(db_path: Path, review: dict) -> dict:
+    """Herkese açık yorum formundan gelen yorumu onay kuyruğuna ekler.
+
+    Aynı kimlikle daha önce eklenmiş yorum varsa yinelenen kayıt oluşturmaz.
+    """
+    if not isinstance(review, dict):
+        raise ValueError("Geçersiz yorum verisi.")
+
+    review_id = as_text(review.get("id")).strip()
+    if not review_id or len(review_id) > 120:
+        raise ValueError("Geçersiz yorum kimliği.")
+
+    name = as_text(review.get("name")).strip()
+    text = as_text(review.get("text")).strip()
+    if not name or not text:
+        raise ValueError("Ad ve yorum zorunludur.")
+
+    software_id = as_text(review.get("softwareId")).strip()[:120] or "genel"
+    title = as_text(review.get("title")).strip()[:120] or "Kullanıcı"
+    created_at = as_text(review.get("createdAt")).strip()[:60] or utc_now()
+    rating = snap_rating(review.get("rating"), 5.0)
+    name = name[:120]
+    text = text[:5000]
+
+    conn = db_connect(db_path)
+    try:
+        cursor = conn.execute(
+            """
+            INSERT OR IGNORE INTO pending_reviews
+                (id, software_id, name, title, text, rating, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (review_id, software_id, name, title, text, rating, created_at),
+        )
+        inserted = cursor.rowcount > 0
+        if inserted:
+            conn.execute(
+                "INSERT INTO activity_log (created_at, action, detail) VALUES (?, ?, ?)",
+                (utc_now(), "Yorum eklendi", f"{name} - {text[:70]}"),
+            )
+            conn.execute(
+                "DELETE FROM activity_log WHERE id NOT IN "
+                "(SELECT id FROM activity_log ORDER BY id DESC LIMIT 500)"
+            )
+        conn.commit()
+        return {"ok": True, "id": review_id, "inserted": inserted}
+    finally:
+        conn.close()
+
+
 def as_text(value) -> str:
     if value is None:
         return ""
@@ -1208,6 +1270,21 @@ class YazilimSecHandler(BaseHTTPRequestHandler):
             print(f"[DB HATASI] {exc}", file=sys.stderr)
             self._send_json({"error": f"Veritabanı hatası: {exc}"}, 500)
 
+    def _add_review_from_request(self) -> None:
+        # Yorum göndermek herkese açıktır; kayıt yalnızca admin onay kuyruğuna düşer.
+        if not self._origin_allowed():
+            self._send_json({"error": "Geçersiz istek kaynağı."}, 403)
+            return
+        try:
+            review = self._read_json()
+            result = add_pending_review(self.db_file, review)
+            self._send_json(result, 201)
+        except ValueError as exc:
+            self._send_json({"error": str(exc)}, 400)
+        except Exception as exc:  # noqa: BLE001 - yerel sunucu için açıklayıcı hata döndür
+            print(f"[DB HATASI] {exc}", file=sys.stderr)
+            self._send_json({"error": f"Veritabanı hatası: {exc}"}, 500)
+
     def do_PUT(self) -> None:
         path = urlparse(self.path).path
         if path == "/api/state":
@@ -1222,6 +1299,9 @@ class YazilimSecHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/auth/logout":
             self._handle_logout()
+            return
+        if path == "/api/reviews":
+            self._add_review_from_request()
             return
         if path in ("/api/state", "/api/seed"):
             self._save_from_request()

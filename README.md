@@ -83,6 +83,7 @@ python admin_sifre.py --username yz_yeni_kullanici
 - Oturum belirteçleri veritabanında yalnızca SHA-256 özetiyle tutulur.
 - `PUT /api/state`, `POST /api/state`, `POST /api/seed` ve `GET /api/activity` oturum gerektirir.
 - `GET /api/state` herkese açıktır ancak **bekleyen yorumlar** yalnızca giriş yapmış yöneticiye döner.
+- `POST /api/reviews` herkese açıktır; yalnızca admin onay kuyruğuna yorum ekler, doğrudan yayınlamaz. Aynı kimlikle gelen yinelenen istekler tekrar kaydedilmez.
 - Gizli giriş adresi public HTML kaynağına yazılmaz; yalnızca yetkili oturumda istemciye verilir. Eski `/admin` yolu **404** döner.
 - Tek dosya (HTML) modunda admin paneli kapalıdır; admin yalnızca yerel sunucu üzerinden açılabilir.
 
@@ -135,6 +136,8 @@ Sonra `http://127.0.0.1:3001/` adresini aç.
 
 - Site sunucu üzerinden açıldığında `/api/state` adresinden SQLite verisini okur.
 - Kaydet işlemleri `/api/state` adresine `PUT` isteği ile yazılır; bu istek admin oturumu gerektirir.
+- Kullanıcı yorumları `/api/reviews` adresine `POST` ile gönderilir ve admin onay kuyruğuna eklenir.
+  Veritabanı kapalıyken gönderilen yorumlar tarayıcıda kuyruğa alınır; site bir sonraki açılışta sunucuya bağlanınca otomatik gönderilir.
 - Sunucu modunda SQLite verisi önceliklidir; tarayıcıdaki eski localStorage kaydı yok sayılır.
 - Site doğrudan HTML dosyası olarak açılırsa eski tek dosya / localStorage modu çalışmaya devam eder; ancak admin paneli açılmaz.
 - API yalnızca `127.0.0.1` üzerinde dinlenir; internete açık değildir.
