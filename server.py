@@ -21,6 +21,7 @@ import hmac
 import html
 import json
 import os
+import re
 import secrets
 import sqlite3
 import sys
@@ -37,6 +38,7 @@ DEFAULT_SITE_FILE = BASE_DIR / "yaz_l_mse_tam_platform_aray_z.html"
 DEFAULT_DB_FILE = BASE_DIR / "data" / "yazilimsec.db"
 MAX_BODY_BYTES = 30 * 1024 * 1024  # 30 MB (base64 logolar için rahat sınır)
 MAX_FORM_BYTES = 16 * 1024
+APP_VERSION = "2026.11.03-review-sync"
 
 SESSION_COOKIE = "yz_admin_session"
 SESSION_TTL_SECONDS = 12 * 60 * 60
@@ -778,6 +780,96 @@ def add_pending_review(db_path: Path, review: dict) -> dict:
         conn.close()
 
 
+_EMBEDDED_STATE_RE = re.compile(
+    r'(<script\b[^>]*\bid=["\']app-state["\'][^>]*>)(.*?)(</script>)',
+    re.IGNORECASE | re.DOTALL,
+)
+_embedded_import_lock = threading.Lock()
+_embedded_import_mtime_ns: int | None = None
+
+
+def import_embedded_pending_reviews(site_file: Path, db_path: Path) -> None:
+    """HTML içine gömülü #app-state yedeğindeki bekleyen yorumları DB'ye aktarır.
+
+    Site çevrimdışıyken (file://) gönderilen yorumlar HTML dosyasına yazılabilir.
+    Sunucu siteyi servis etmeden önce bu yorumları onay kuyruğuna alır ve gömülü
+    durumdan temizler; böylece aynı yorum her açılışta yeniden eklenmez.
+    """
+    global _embedded_import_mtime_ns
+    try:
+        stat = site_file.stat()
+    except OSError:
+        return
+    if _embedded_import_mtime_ns == stat.st_mtime_ns:
+        return
+
+    with _embedded_import_lock:
+        try:
+            stat = site_file.stat()
+        except OSError:
+            return
+        if _embedded_import_mtime_ns == stat.st_mtime_ns:
+            return
+
+        try:
+            html_text = site_file.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"[HTML OKUMA HATASI] {exc}", file=sys.stderr)
+            return
+
+        match = _EMBEDDED_STATE_RE.search(html_text)
+        if not match:
+            _embedded_import_mtime_ns = stat.st_mtime_ns
+            return
+
+        try:
+            state = json.loads(match.group(2) or "{}")
+        except (TypeError, json.JSONDecodeError) as exc:
+            print(f"[GÖMÜLÜ DURUM HATASI] {exc}", file=sys.stderr)
+            _embedded_import_mtime_ns = stat.st_mtime_ns
+            return
+
+        if not isinstance(state, dict):
+            _embedded_import_mtime_ns = stat.st_mtime_ns
+            return
+
+        pending = state.get("pendingReviews")
+        if not isinstance(pending, list) or not pending:
+            _embedded_import_mtime_ns = stat.st_mtime_ns
+            return
+
+        imported = 0
+        for review in pending:
+            try:
+                result = add_pending_review(db_path, review)
+                if result.get("inserted"):
+                    imported += 1
+            except Exception as exc:  # noqa: BLE001 - geçersiz yedek kaydı sunucuyu durdurmasın
+                print(f"[GÖMÜLÜ YORUM HATASI] {exc}", file=sys.stderr)
+
+        # Yorumlar artık veritabanında; gömülü yedekten temizle.
+        state["pendingReviews"] = []
+        state_json = json.dumps(
+            state, ensure_ascii=False, separators=(",", ":")
+        ).replace("<", "\\u003c")
+        updated = html_text[: match.start(2)] + state_json + html_text[match.end(2):]
+
+        try:
+            temp_file = site_file.with_name(site_file.name + ".tmp")
+            temp_file.write_text(updated, encoding="utf-8")
+            os.replace(temp_file, site_file)
+            _embedded_import_mtime_ns = site_file.stat().st_mtime_ns
+            if imported:
+                print(
+                    f"[YORUM AKTARIMI] HTML yedeğinden {imported} yorum onay kuyruğuna eklendi."
+                )
+        except OSError as exc:
+            # Dosya salt okunur olabilir; yorumlar yine de DB'ye alındı.
+            # Aynı HTML için her istekte yeniden yazmayı denememek üzere önbelleği güncelle.
+            _embedded_import_mtime_ns = stat.st_mtime_ns
+            print(f"[HTML YAZMA HATASI] {exc}", file=sys.stderr)
+
+
 def as_text(value) -> str:
     if value is None:
         return ""
@@ -1164,6 +1256,8 @@ class YazilimSecHandler(BaseHTTPRequestHandler):
         if not self.site_file.exists():
             self._send_json({"error": f"Site dosyası bulunamadı: {self.site_file}"}, 404)
             return
+        # Çevrimdışı gönderilip HTML dosyasına yazılmış yorumları veritabanına al.
+        import_embedded_pending_reviews(self.site_file, self.db_file)
         html_text = self.site_file.read_text(encoding="utf-8")
         # Siteye sadece bu sunucu üzerinden servis edildiğinde API modu işaretini ekle.
         # Admin yetkisi ve gizli rota bilgisi de sunucu tarafından enjekte edilir.
@@ -1210,6 +1304,8 @@ class YazilimSecHandler(BaseHTTPRequestHandler):
         if path == "/api/health":
             self._send_json({
                 "ok": True,
+                "version": APP_VERSION,
+                "review_sync": True,
                 "database": str(self.db_file),
                 "site": str(self.site_file),
                 "admin_auth": admin_auth_exists(self.db_file),
@@ -1320,7 +1416,7 @@ class YazilimSecHandler(BaseHTTPRequestHandler):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="YazilimSec yerel SQLite sunucusu")
-    parser.add_argument("--host", default="127.0.0.1", help="Dinlenecek adres (varsayılan: 127.0.0.1)")
+    parser.add_argument("--host", default="0.0.0.0", help="Dinlenecek adres (varsayılan: 0.0.0.0; yalnızca yerel için 127.0.0.1)")
     parser.add_argument("--port", type=int, default=3000, help="Port (varsayılan: 3000)")
     parser.add_argument("--site", default=str(DEFAULT_SITE_FILE), help="Servis edilecek HTML dosyası")
     parser.add_argument("--db", default=str(DEFAULT_DB_FILE), help="SQLite veritabanı dosyası")
@@ -1343,11 +1439,12 @@ def main() -> int:
     YazilimSecHandler.site_file = site_file
     YazilimSecHandler.db_file = db_file
 
-    server = ThreadingHTTPServer(("0.0.0.0", args.port), YazilimSecHandler)
+    server = ThreadingHTTPServer((args.host, args.port), YazilimSecHandler)
+    display_host = "127.0.0.1" if args.host in ("0.0.0.0", "::") else args.host
     print("=" * 64)
     print("YazilimSec SQLite sunucusu çalışıyor")
-    print(f"Site      : http://{args.host}:{args.port}/")
-    print(f"Giriş     : http://{args.host}:{args.port}{ADMIN_PATH}  (giriş gerekli)")
+    print(f"Site      : http://{display_host}:{args.port}/")
+    print(f"Giriş     : http://{display_host}:{args.port}{ADMIN_PATH}  (giriş gerekli)")
     print(f"HTML      : {site_file}")
     print(f"Veritabanı: {db_file}")
     print("Oturumlar : Sunucu başlangıcında sıfırlandı (yeniden giriş gerekir)")

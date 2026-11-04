@@ -132,15 +132,30 @@ start-server.bat --port 3001
 
 Sonra `http://127.0.0.1:3001/` adresini aç.
 
+## Docker ile Çalıştırma
+
+```bash
+docker build -t yazilimsec .
+docker run --rm -p 3000:3000 -v yazilimsec-data:/app/data yazilimsec
+```
+
+- `-v yazilimsec-data:/app/data` veritabanının konteyner yeniden başlatıldığında kaybolmamasını sağlar.
+- İlk çalıştırmada yönetici kullanıcı adı ve şifresi konteyner günlüklerinde gösterilir. Kalıcı bir şifre belirlemek için `YAZILIMSEC_ADMIN_USERNAME` ve `YAZILIMSEC_ADMIN_PASSWORD` ortam değişkenlerini kullan.
+- Yönetici giriş yolu varsayılan olarak `/kurumsal-giris-7e81773b` adresidir; `YAZILIMSEC_ADMIN_PATH` ile değiştirilebilir.
+- Sağlık kontrolü: `http://127.0.0.1:3000/api/health`
+
 ## Nasıl Çalışır?
 
 - Site sunucu üzerinden açıldığında `/api/state` adresinden SQLite verisini okur.
 - Kaydet işlemleri `/api/state` adresine `PUT` isteği ile yazılır; bu istek admin oturumu gerektirir.
 - Kullanıcı yorumları `/api/reviews` adresine `POST` ile gönderilir ve admin onay kuyruğuna eklenir.
   Veritabanı kapalıyken gönderilen yorumlar tarayıcıda kuyruğa alınır; site bir sonraki açılışta sunucuya bağlanınca otomatik gönderilir.
+- Eski sürümde yalnızca tarayıcı durumunda (`localStorage`) kalmış bekleyen yorumlar da admin paneli açıldığında bir kez veritabanına taşınır.
+- Site `file://` ile açılıp yorum gönderildiğinde, yorum HTML dosyasındaki `#app-state` bloğuna yazılabilir. Sunucu bu dosyayı servis ederken bloğu okuyup yorumu veritabanına aktarır ve bloktan temizler.
 - Sunucu modunda SQLite verisi önceliklidir; tarayıcıdaki eski localStorage kaydı yok sayılır.
 - Site doğrudan HTML dosyası olarak açılırsa eski tek dosya / localStorage modu çalışmaya devam eder; ancak admin paneli açılmaz.
-- API yalnızca `127.0.0.1` üzerinde dinlenir; internete açık değildir.
+- Sunucu varsayılan olarak tüm ağ arayüzlerinde (`0.0.0.0`) dinler. Yalnızca bu bilgisayardan erişim için `--host 127.0.0.1` kullan.
+- Sunucunun güncel sürümde olup olmadığını `http://127.0.0.1:3000/api/health` adresindeki `version` ve `review_sync` alanlarından kontrol edebilirsin.
 
 ## Notlar
 

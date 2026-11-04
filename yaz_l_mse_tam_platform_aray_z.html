@@ -240,6 +240,8 @@
             #page-admin form { font-size: .82rem !important; }
             #page-admin .overflow-x-auto { -webkit-overflow-scrolling: touch; }
             #page-admin table { min-width: 640px; font-size: .78rem !important; }
+            #pending-header { flex-wrap: wrap; gap: .6rem !important; }
+            #pending-actions { flex-wrap: wrap; }
 
             /* ---------- MODAL & FOOTER ---------- */
             #review-modal { padding: .7rem !important; }
@@ -1303,15 +1305,19 @@
             <!-- ========== ADMIN: YORUM ONAYI ========== -->
             <div id="admin-page-reviews" class="hidden">
                 <div class="bg-white p-6 rounded-card border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div id="pending-header" class="flex items-center justify-between border-b border-slate-200 pb-3">
                         <div>
                             <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
                                 <i class="fa-solid fa-comments text-brand-lightBlue"></i> Yorum Onay Kuyruğu
                             </h3>
                             <p class="text-xs text-slate-500 mt-1">Onaylanan yorumlar ana sayfada ve ilgili yazılımın detayında yayınlanır.</p>
                         </div>
-                        <span id="pending-count-badge" class="text-xs bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-bold">0 Bekleyen Yorum</span>
+                        <div id="pending-actions" class="flex items-center gap-2">
+                            <button type="button" id="pending-sync-btn" onclick="manualSyncReviews()" class="hidden text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-bold hover:bg-blue-700"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>Kuyruğu Gönder</button>
+                            <span id="pending-count-badge" class="text-xs bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-bold">0 Bekleyen Yorum</span>
+                        </div>
                     </div>
+                    <p id="pending-sync-note" class="hidden text-[11px] text-amber-700 font-semibold"></p>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
@@ -1493,6 +1499,7 @@
         const STATE_STORAGE_KEY = 'yazilimsec_state_v2';
         const SITE_ID_KEY = 'yazilimsec_site_id_v1';
         const OFFLINE_REVIEWS_KEY = 'yazilimsec_offline_reviews_v1';
+        const LEGACY_PENDING_MIGRATED_KEY = 'yazilimsec_legacy_pending_migrated_v1';
         const API_BASE = '/api';
         let apiMode = false;
         let stateDirty = false;
@@ -3723,46 +3730,121 @@
             saveOfflineReviews(loadOfflineReviews().filter(r => String(r.id) !== String(id)));
         }
 
-        async function syncOfflineReviews() {
-            // Yalnızca sunucu tarafından eklenen işaret varsa dene; statik dosyada boşuna istek atma.
-            if (!window.__YAZILIMSEC_SQLITE__) return false;
-            const queue = loadOfflineReviews();
-            if (!queue.length) return true;
+        let offlineSyncPromise = null;
 
-            let allOk = true;
-            for (const review of queue) {
-                try {
-                    const res = await fetch(API_BASE + '/reviews', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(review)
-                    });
-                    if (!res.ok) throw new Error('API ' + res.status);
-                    removeOfflineReview(review.id);
-                } catch (err) {
-                    console.warn('Çevrimdışı yorum veritabanına gönderilemedi:', err);
-                    allOk = false;
-                    break; // İlk hatada dur; sonraki açılışta yeniden denenecek.
+        async function syncOfflineReviews() {
+            // Aynı anda birden fazla senkronizasyon başlamasın (çift POST'ları önler).
+            if (offlineSyncPromise) return offlineSyncPromise;
+
+            offlineSyncPromise = (async () => {
+                // Yalnızca sunucu tarafından eklenen işaret varsa dene; statik dosyada boşuna istek atma.
+                if (!window.__YAZILIMSEC_SQLITE__) return false;
+                const queue = loadOfflineReviews();
+                if (!queue.length) return true;
+
+                let allOk = true;
+                for (const review of queue) {
+                    try {
+                        const res = await fetch(API_BASE + '/reviews', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(review)
+                        });
+                        if (!res.ok) throw new Error('API ' + res.status);
+                        removeOfflineReview(review.id);
+                    } catch (err) {
+                        console.warn('Çevrimdışı yorum veritabanına gönderilemedi:', err);
+                        allOk = false;
+                        break; // İlk hatada dur; sonraki açılışta yeniden denenecek.
+                    }
                 }
+                renderPendingReviews();
+                return allOk;
+            })();
+
+            try {
+                return await offlineSyncPromise;
+            } finally {
+                offlineSyncPromise = null;
             }
-            return allOk;
         }
 
-        // Sunucudan gelen bekleyen yorumlarla yerel kuyruğu birleştirir.
-        // Böylece admin paneli, kuyruk veritabanına gönderilmeden önce de yorumu görür.
-        function mergeOfflineReviewsIntoPending() {
-            const queue = loadOfflineReviews();
-            if (!queue.length) return;
-            const ids = new Set(pendingReviews.map(r => String((r && r.id) || '')));
+        // Admin panelindeki "Kuyruğu Gönder" butonu: yerel kuyruğu gönderip paneli tazeler.
+        async function manualSyncReviews() {
+            const ok = await syncOfflineReviews();
+            if (!ok) {
+                showToast('Kuyruk gönderilemedi. Sunucunun açık ve güncel olduğundan emin olun.');
+                renderPendingReviews();
+                return;
+            }
+            try {
+                const state = await fetchStateFromApi();
+                if (state && !state.empty) {
+                    applyStateFromApi(state);
+                }
+            } catch (err) {
+                console.warn('Gönderim sonrası durum yenilenemedi:', err);
+            }
+            renderPendingReviews();
+            renderApprovedReviews();
+            showToast('Yerel yorum kuyruğu veritabanına gönderildi.');
+        }
+
+        // Aynı yorumun farklı kimliklerle (ör. onaylanınca DB'nin sayısal kimliği)
+        // yeniden kuyruğa eklenmesini engellemek için içerik imzası üretir.
+        function reviewContentSignature(r) {
+            return [
+                String((r && r.name) || '').trim(),
+                String((r && r.title) || 'Kullanıcı').trim(),
+                String((r && r.text) || '').trim(),
+                snapReviewRating((r && r.rating) || 0).toFixed(1)
+            ].join('|');
+        }
+
+        // Sunucudan gelen bekleyen yorumlarla yerel kuyruğu ve eski tarayıcı yedeğini birleştirir.
+        // Böylece hem yeni çevrimdışı kuyruk hem de eski sürümde gönderilmiş yorumlar admin panelinde görünür.
+        function mergeLocalPendingReviewsIntoPending() {
+            const candidates = [];
+            let legacyMigrated = false;
+            try {
+                legacyMigrated = localStorage.getItem(LEGACY_PENDING_MIGRATED_KEY) === '1';
+            } catch (err) {}
+            // Eski sürümde yalnızca tarayıcı durumunda kalmış yorumları bir kez taşı.
+            if (!legacyMigrated && savedAppState && Array.isArray(savedAppState.pendingReviews)) {
+                candidates.push(...savedAppState.pendingReviews);
+            }
+            candidates.push(...loadOfflineReviews());
+            if (!candidates.length) {
+                if (!legacyMigrated) {
+                    try { localStorage.setItem(LEGACY_PENDING_MIGRATED_KEY, '1'); } catch (err) {}
+                }
+                return;
+            }
+
+            const knownIds = new Set();
+            const knownSignatures = new Set();
+            const remember = r => {
+                knownIds.add(String((r && r.id) || ''));
+                knownSignatures.add(reviewContentSignature(r));
+            };
+            pendingReviews.forEach(remember);
+            approvedUserReviews.forEach(remember);
+
             let added = false;
-            queue.forEach(r => {
+            candidates.forEach(r => {
                 const id = String((r && r.id) || '');
-                if (!id || ids.has(id)) return;
-                ids.add(id);
+                const signature = reviewContentSignature(r);
+                if (!id || knownIds.has(id) || knownSignatures.has(signature)) return;
+                knownIds.add(id);
+                knownSignatures.add(signature);
                 pendingReviews.push(Object.assign({}, r));
+                queueOfflineReview(r); // Veritabanına gönderileceği kesinleşsin.
                 added = true;
             });
             if (added) renderPendingReviews();
+            if (!legacyMigrated) {
+                try { localStorage.setItem(LEGACY_PENDING_MIGRATED_KEY, '1'); } catch (err) {}
+            }
         }
 
         function resetSiteLogoDisplay() {
@@ -3839,7 +3921,7 @@
                     // Veritabanı boş: mevcut site verisini ilk kayıt olarak SQLite'a aktar.
                     apiMode = true;
                     if (savedAppState && savedAppState.siteLogoData) applySiteLogoData(savedAppState.siteLogoData);
-                    mergeOfflineReviewsIntoPending();
+                    mergeLocalPendingReviewsIntoPending();
                     try {
                         await saveStateToApi(buildPersistedState());
                         showDatabaseModeUI();
@@ -3857,7 +3939,7 @@
                 apiMode = true;
                 loadedStateIsNewerThanFile = false;
                 // Çevrimdışı gönderilen yorumları hem ekranda göster hem veritabanına ilet.
-                mergeOfflineReviewsIntoPending();
+                mergeLocalPendingReviewsIntoPending();
                 showDatabaseModeUI();
                 syncOfflineReviews();
                 return true;
@@ -4193,8 +4275,18 @@
                 syncOfflineReviews().then(ok => {
                     if (!ok) showToast("Yorumunuz tarayıcıda saklandı; veritabanına bağlanınca otomatik gönderilecek.");
                 });
+            } else if (location.protocol === 'file:') {
+                // Dosya doğrudan açıldıysa yorumu HTML dosyasına yazmayı teklif et.
+                // Sunucu bu dosyayı servis ederken yorumu otomatik olarak veritabanına alır.
+                persistStateToFile({ ensureHandle: true, toast: false }).then(ok => {
+                    if (ok) {
+                        showToast("Yorum HTML dosyasına kaydedildi. Sunucu açılınca admin panelinde görünecek.");
+                    } else {
+                        showToast("Yorum tarayıcıda saklandı. Sunucuya ulaşması için HTML dosyasını kaydedin veya siteyi http://127.0.0.1:3000 adresinden açın.");
+                    }
+                });
             } else {
-                // Normal kullanıcıya HTML dosyası seçtirilmez; bağlı dosya varsa sessizce yazılır.
+                // Sunucu üzerinden açıldı ama API'ye ulaşılamıyor: aynı kökendeki kuyrukta tut.
                 persistStateToFile({ ensureHandle: false });
                 showToast("Yorumunuz kaydedildi! Veritabanı açıldığında admin paneline otomatik gönderilecek.");
             }
@@ -4340,6 +4432,18 @@
             if (badge) badge.innerText = pendingReviews.length + ' Bekleyen Yorum';
             const navBadge = document.getElementById('admin-nav-pending');
             if (navBadge) navBadge.innerText = pendingReviews.length;
+
+            // Veritabanına gönderilmeyi bekleyen yerel yorumları görünür kıl.
+            const queueCount = loadOfflineReviews().length;
+            const syncBtn = document.getElementById('pending-sync-btn');
+            const syncNote = document.getElementById('pending-sync-note');
+            if (syncBtn) syncBtn.classList.toggle('hidden', queueCount === 0);
+            if (syncNote) {
+                syncNote.classList.toggle('hidden', queueCount === 0);
+                syncNote.innerText = queueCount
+                    ? 'Bu tarayıcıda veritabanına gönderilmeyi bekleyen ' + queueCount + ' yorum var.'
+                    : '';
+            }
 
             if (pendingReviews.length === 0) {
                 tbody.innerHTML = `

@@ -1,0 +1,11 @@
+.git
+.gitignore
+__pycache__
+*.py[cod]
+data
+ADMIN-ILK-SIFRE.txt
+ADMIN-SIFRE.txt
+.env
+*.db
+*.db-wal
+*.db-shm
