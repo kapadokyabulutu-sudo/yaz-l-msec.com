@@ -161,5 +161,6 @@ docker run --rm -p 3000:3000 -v yazilimsec-data:/app/data yazilimsec
 
 - Bu sunucu yerel kullanım için tasarlandı. Admin girişi vardır; yine de internete açmadan önce HTTPS ve ek sunucu güvenliği gerekir.
 - `ADMIN-ILK-SIFRE.txt` ve `ADMIN-SIFRE.txt` dosyaları düz metin şifre içerir. Şifreyi ezberledikten sonra bu dosyaları sil.
+- Bu dosyaları Git deposuna eklemeyin (`.gitignore` içinde hariç tutulur). Şifre yanlışlıkla paylaşıldıysa `admin-sifre-degistir.bat` ile hemen değiştirin.
 - HTML dosyasını tek başına paylaştığında, veritabanındaki son değişiklikler dosyada bulunmaz.
   Tek dosya paylaşımı için verilerin HTML dosyasına ayrıca aktarılması gerekir.
