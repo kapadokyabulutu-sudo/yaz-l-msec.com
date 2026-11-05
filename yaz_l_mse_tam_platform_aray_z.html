@@ -2361,8 +2361,9 @@
                 return;
             }
 
-            // Diğer gruplarda aynı grupta tek seçim (checkbox görünümü korunur)
-            if (el.checked) {
+            // Puan ve fiyat gruplarında tek seçim; teknik özelliklerde çoklu seçim.
+            // Böylece bir özellik kaldırıldığında diğer özellikler ve üstteki filtre etiketleri tutarlı kalır.
+            if (el.checked && group !== 'feature') {
                 document.querySelectorAll('#page-listing input[data-group="' + group + '"]').forEach(other => {
                     if (other !== el) other.checked = false;
                 });
